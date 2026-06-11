@@ -420,6 +420,123 @@ img{max-width:100%;display:block}
 <!-- ══════════════════════════════════════════
      HERO
 ══════════════════════════════════════════ -->
+<!-- ══ TELA DE SENHA ══ -->
+<div id="lock-screen" style="
+  position:fixed;inset:0;z-index:99999;
+  background:linear-gradient(160deg,#0e0812 0%,#1e0d18 40%,#0e0812 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:2rem;
+  transition:opacity 1.2s ease, transform 1.2s ease;
+">
+  <canvas id="lock-canvas" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
+  <div style="position:relative;z-index:2;max-width:480px;width:100%">
+    <div style="font-size:3rem;margin-bottom:1.5rem;animation:lock-float 3s ease-in-out infinite">🌸</div>
+    <h1 style="
+      font-family:'Cormorant Garamond',Georgia,serif;
+      font-size:clamp(1.8rem,5vw,2.8rem);font-weight:300;
+      color:#fff;line-height:1.25;margin-bottom:.8rem
+    ">Preparei algo especial<br><em style="color:#F0A0B4;font-style:italic">só para você.</em></h1>
+    <p style="
+      font-family:'Dancing Script',cursive;
+      font-size:clamp(1rem,3vw,1.3rem);
+      color:rgba(255,255,255,.65);margin-bottom:2.5rem;line-height:1.6
+    ">Cada detalhe deste espaço foi feito<br>com todo o meu amor, pensando em você.</p>
+    <div style="margin-bottom:1rem">
+      <input id="lock-input" type="text" placeholder="Digite a senha..."
+        autocomplete="off"
+        style="
+          width:100%;padding:1rem 1.4rem;
+          background:rgba(255,255,255,.07);
+          border:1.5px solid rgba(240,160,180,.35);
+          border-radius:100px;color:#fff;
+          font-family:'Lato',sans-serif;font-size:1rem;
+          text-align:center;letter-spacing:.08em;
+          outline:none;transition:border-color .3s ease;
+          backdrop-filter:blur(10px);
+        "
+      />
+    </div>
+    <button id="lock-btn" onclick="checkPassword()" style="
+      width:100%;padding:.95rem;background:transparent;
+      border:1.5px solid #C9A05A;border-radius:100px;
+      color:#EDD89A;font-family:'Lato',sans-serif;
+      font-size:.75rem;letter-spacing:.35em;text-transform:uppercase;
+      cursor:pointer;margin-bottom:1.5rem;
+      transition:background .3s ease, color .3s ease;
+    "
+    onmouseover="this.style.background='#C9A05A';this.style.color='#180d12'"
+    onmouseout="this.style.background='transparent';this.style.color='#EDD89A'"
+    >Abrir com amor ❤</button>
+    <p style="
+      font-family:'Lato',sans-serif;font-size:.7rem;
+      letter-spacing:.2em;color:rgba(255,255,255,.35);text-transform:uppercase
+    ">✦ Dica: é como ele te chama de carinho ✦</p>
+    <p id="lock-error" style="
+      font-family:'Dancing Script',cursive;font-size:1rem;
+      color:#E8637A;margin-top:1rem;opacity:0;transition:opacity .4s ease
+    ">Hmm... tenta de novo, pitica 😏</p>
+  </div>
+</div>
+
+<style>
+@keyframes lock-float{0%,100%{transform:translateY(0) rotate(-5deg)}50%{transform:translateY(-10px) rotate(5deg)}}
+#lock-input:focus{border-color:rgba(240,160,180,.8)!important;background:rgba(255,255,255,.1)!important}
+</style>
+
+<script>
+function checkPassword(){
+  const val=document.getElementById('lock-input').value.trim().toLowerCase();
+  const err=document.getElementById('lock-error');
+  if(val==='pitica'||val==='pompom'){
+    const lock=document.getElementById('lock-screen');
+    lock.style.opacity='0';lock.style.transform='scale(1.04)';
+    setTimeout(()=>{lock.style.display='none'},1200);
+  } else {
+    err.style.opacity='1';
+    setTimeout(()=>{err.style.opacity='0'},2500);
+    const inp=document.getElementById('lock-input');
+    inp.style.borderColor='rgba(232,99,122,.8)';
+    setTimeout(()=>{inp.style.borderColor='rgba(240,160,180,.35)'},600);
+  }
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('lock-input').addEventListener('keydown',e=>{
+    if(e.key==='Enter')checkPassword();
+  });
+  // Flores caindo na tela de senha
+  const cv=document.getElementById('lock-canvas');
+  const cx=cv.getContext('2d');
+  let W,H,pts=[];
+  function resize(){W=cv.width=cv.offsetWidth;H=cv.height=cv.offsetHeight}
+  resize();window.addEventListener('resize',resize);
+  const flowers=['🌸','🌺','🌼','🌷','🌹','💐','🌻'];
+  class Fl{
+    reset(init){
+      this.x=Math.random()*W;this.y=init?Math.random()*H:-30;
+      this.size=Math.random()*14+10;this.speed=Math.random()*.6+.2;
+      this.vx=(Math.random()-.5)*.5;this.angle=Math.random()*Math.PI*2;
+      this.spin=(Math.random()-.5)*.02;this.alpha=Math.random()*.5+.25;
+      this.emoji=flowers[Math.floor(Math.random()*flowers.length)];
+      this.wobble=Math.random()*Math.PI*2;
+    }
+    constructor(){this.reset(true)}
+    update(){
+      this.y+=this.speed;this.x+=this.vx+Math.sin(this.wobble)*.4;
+      this.angle+=this.spin;this.wobble+=.015;
+      if(this.y>H+30)this.reset();
+    }
+    draw(){
+      cx.save();cx.globalAlpha=this.alpha;
+      cx.translate(this.x,this.y);cx.rotate(this.angle);
+      cx.font=this.size+'px serif';cx.textAlign='center';
+      cx.fillText(this.emoji,0,0);cx.restore();
+    }
+  }
+  for(let i=0;i<28;i++)pts.push(new Fl());
+  (function loop(){cx.clearRect(0,0,W,H);pts.forEach(p=>{p.update();p.draw()});requestAnimationFrame(loop)})();
+});
+</script>
+
 <section id="hero">
   <canvas id="hero-canvas"></canvas>
   <div class="hero-glow"></div>
@@ -557,6 +674,164 @@ img{max-width:100%;display:block}
       <p class="cnt-since rv d3" id="c-since"></p>
     </div>
   </section>
+
+
+
+  <!-- SPOTIFY — My You · Jungkook -->
+  <section style="
+    background:linear-gradient(160deg,#1a0a10 0%,#2d1520 100%);
+    padding:5rem 2rem;text-align:center;position:relative;overflow:hidden;
+  ">
+    <!-- Flores decorativas nos cantos -->
+    <div style="position:absolute;top:1.5rem;left:1.5rem;font-size:1.4rem;opacity:.3;animation:sway 4s ease-in-out infinite">🌸</div>
+    <div style="position:absolute;top:1.5rem;right:1.5rem;font-size:1.4rem;opacity:.3;animation:sway 4s ease-in-out infinite .6s">🌹</div>
+    <div style="position:absolute;bottom:1.5rem;left:1.5rem;font-size:1.2rem;opacity:.25;animation:sway 5s ease-in-out infinite 1s">🌷</div>
+    <div style="position:absolute;bottom:1.5rem;right:1.5rem;font-size:1.2rem;opacity:.25;animation:sway 3.5s ease-in-out infinite .4s">🌼</div>
+
+    <div style="position:relative;z-index:2;max-width:500px;margin:0 auto">
+      <!-- Texto acima -->
+      <p style="
+        font-family:'Lato',sans-serif;font-size:.62rem;
+        letter-spacing:.45em;text-transform:uppercase;
+        color:rgba(240,160,180,.6);margin-bottom:1rem
+      ">uma música para você</p>
+
+      <h3 style="
+        font-family:'Cormorant Garamond',Georgia,serif;
+        font-size:clamp(1.6rem,4vw,2.4rem);font-weight:300;font-style:italic;
+        color:#fff;line-height:1.3;margin-bottom:.6rem
+      ">Essa música me faz<br><em style="color:#F0A0B4">pensar em você.</em></h3>
+
+      <p style="
+        font-family:'Dancing Script',cursive;font-size:1rem;
+        color:rgba(255,255,255,.45);margin-bottom:2rem;line-height:1.6
+      ">My You · Jungkook</p>
+
+      <!-- Player Spotify embedado -->
+      <iframe
+        src="https://open.spotify.com/embed/track/0pNFrM5L0te1EXGxveeYiR?utm_source=generator&theme=0"
+        width="100%"
+        height="152"
+        frameborder="0"
+        allowfullscreen=""
+        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+        loading="lazy"
+        style="border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,.4)"
+      ></iframe>
+
+      <!-- Texto abaixo -->
+      <p style="
+        font-family:'Dancing Script',cursive;font-size:1.05rem;
+        color:rgba(255,255,255,.35);margin-top:1.8rem;line-height:1.7
+      ">Toca essa música e continua lendo.<br>Cada palavra foi escrita pensando em você. ❤</p>
+    </div>
+  </section>
+
+  <!-- DOIS MUNDOS — sem você × com você -->
+  <section id="two-worlds" style="position:relative;overflow:hidden;display:flex;flex-direction:column">
+
+    <!-- Metade ESCURA — sem você -->
+    <div style="
+      min-height:55vh;position:relative;
+      background:linear-gradient(160deg,#0a0610 0%,#16091a 50%,#0a0610 100%);
+      display:flex;align-items:center;justify-content:center;text-align:center;
+      padding:5rem 2rem 3rem;overflow:hidden;
+    ">
+      <canvas id="rain-canvas" style="position:absolute;inset:0;width:100%;height:100%;opacity:.25;pointer-events:none"></canvas>
+      <div style="position:relative;z-index:2;max-width:600px">
+        <p style="font-family:'Lato',sans-serif;font-size:.62rem;letter-spacing:.45em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:1.2rem">sem você</p>
+        <h2 style="
+          font-family:'Cormorant Garamond',Georgia,serif;
+          font-size:clamp(2rem,5vw,3.5rem);font-weight:300;font-style:italic;
+          color:rgba(255,255,255,.6);line-height:1.25;margin-bottom:1.5rem
+        ">O mundo era mais<br><em style="color:rgba(200,150,200,.5)">cinza e silencioso.</em></h2>
+        <p style="font-family:'Dancing Script',cursive;font-size:clamp(1rem,2.5vw,1.3rem);color:rgba(255,255,255,.35);line-height:1.7">
+          Existia. Seguia em frente.<br>Mas faltava algo que eu<br>ainda não sabia nomear.
+        </p>
+      </div>
+    </div>
+
+    <!-- HORIZONTE com sol nascendo -->
+    <div style="
+      position:relative;z-index:10;height:120px;
+      background:linear-gradient(180deg,#0a0610 0%,#3d1020 25%,#8B2252 55%,#C0522A 75%,#E8863A 100%);
+      display:flex;align-items:center;justify-content:center;overflow:visible;
+    ">
+      <div style="
+        width:80px;height:80px;border-radius:50%;
+        background:radial-gradient(circle,#FFF5C0 0%,#F9C74F 35%,#F4A124 65%,rgba(244,161,36,0) 100%);
+        box-shadow:0 0 50px 15px rgba(249,199,79,.5),0 0 100px 30px rgba(248,150,30,.3);
+        animation:sun-rise 4s ease-in-out infinite;
+        position:absolute;bottom:-20px;
+      "></div>
+      <p style="
+        font-family:'Dancing Script',cursive;font-size:1.1rem;
+        color:rgba(255,255,255,.55);letter-spacing:.15em;
+        position:absolute;top:16px;
+      ">❧ e então você chegou ❧</p>
+    </div>
+
+    <!-- Metade CLARA — com você -->
+    <div style="
+      min-height:55vh;position:relative;
+      background:linear-gradient(180deg,#E8863A 0%,#F4B860 20%,#FDE090 45%,#FEF5D0 65%,#FFF8F0 85%,#FEF4F7 100%);
+      display:flex;align-items:center;justify-content:center;text-align:center;
+      padding:4rem 2rem 5rem;overflow:hidden;
+    ">
+      <div style="position:absolute;inset:0;pointer-events:none;overflow:hidden">
+        <div style="position:absolute;top:10%;left:2%;font-size:1.8rem;opacity:.25;animation:sway 4s ease-in-out infinite">🌸</div>
+        <div style="position:absolute;top:20%;right:3%;font-size:1.4rem;opacity:.2;animation:sway 5s ease-in-out infinite .8s">🌹</div>
+        <div style="position:absolute;top:50%;left:3%;font-size:1.6rem;opacity:.22;animation:sway 3.5s ease-in-out infinite .4s">🌷</div>
+        <div style="position:absolute;top:60%;right:2%;font-size:1.5rem;opacity:.2;animation:sway 4.5s ease-in-out infinite 1s">🌻</div>
+        <div style="position:absolute;bottom:15%;left:5%;font-size:1.3rem;opacity:.18;animation:sway 4s ease-in-out infinite .6s">🌺</div>
+        <div style="position:absolute;bottom:10%;right:4%;font-size:1.5rem;opacity:.2;animation:sway 3.8s ease-in-out infinite 1.2s">🌼</div>
+      </div>
+      <div style="position:relative;z-index:2;max-width:600px">
+        <p style="font-family:'Lato',sans-serif;font-size:.62rem;letter-spacing:.45em;text-transform:uppercase;color:rgba(139,34,82,.55);margin-bottom:1.2rem">com você</p>
+        <h2 style="
+          font-family:'Cormorant Garamond',Georgia,serif;
+          font-size:clamp(2rem,5vw,3.5rem);font-weight:300;font-style:italic;
+          color:#3d1020;line-height:1.25;margin-bottom:1.5rem;
+          text-shadow:0 1px 20px rgba(255,255,255,.6)
+        ">O mundo ficou mais<br><em style="color:#C0522A">quente, bonito e vivo.</em></h2>
+        <p style="font-family:'Dancing Script',cursive;font-size:clamp(1rem,2.5vw,1.3rem);color:#5c2a38;line-height:1.7">
+          Com você aprendi que existe<br>uma versão do mundo que só<br>aparece quando você está perto.
+        </p>
+      </div>
+    </div>
+  </section>
+
+<style>
+@keyframes sun-rise{
+  0%,100%{transform:translateY(0);box-shadow:0 0 50px 15px rgba(249,199,79,.5),0 0 100px 30px rgba(248,150,30,.3)}
+  50%{transform:translateY(-8px);box-shadow:0 0 70px 25px rgba(249,199,79,.7),0 0 140px 50px rgba(248,150,30,.4)}
+}
+@keyframes sway{
+  0%,100%{transform:translateY(0) rotate(-5deg)}
+  50%{transform:translateY(-12px) rotate(5deg)}
+}
+</style>
+
+<script>
+(function(){
+  const cv=document.getElementById('rain-canvas');
+  if(!cv)return;
+  const cx=cv.getContext('2d');
+  let W,H,drops=[];
+  function resize(){W=cv.width=cv.offsetWidth;H=cv.height=cv.offsetHeight}
+  resize();window.addEventListener('resize',resize);
+  for(let i=0;i<80;i++)drops.push({x:Math.random()*2000,y:Math.random()*2000,speed:Math.random()*2+1,len:Math.random()*12+6});
+  (function loop(){
+    cx.clearRect(0,0,W,H);
+    cx.strokeStyle='rgba(180,160,200,.5)';cx.lineWidth=.5;
+    drops.forEach(d=>{
+      cx.beginPath();cx.moveTo(d.x%W,d.y%H);cx.lineTo((d.x%W)+1,(d.y+d.len)%H);cx.stroke();
+      d.y+=d.speed;if(d.y>H+20)d.y=-20;
+    });
+    requestAnimationFrame(loop);
+  })();
+})();
+</script>
 
   <!-- FINALE -->
   <section id="finale">
